@@ -1,0 +1,17 @@
+# Artefacts produced when a tutorial is rendered/run
+*_files/
+*_cache/
+tutorials/**/*.html
+tutorials/**/*.knit.md
+
+# RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Deployment metadata
+rsconnect/
+
+# macOS
+.DS_Store
