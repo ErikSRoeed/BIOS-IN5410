@@ -26,6 +26,7 @@ To update your local copy of the repository later, use git again:
 git fetch --all
 git pull
 ```
+If you don't have git on your local computer, simply download and unzip the repository (the green download button).
 
 #### 2.4 Install the required packages
 Run this from the **R terminal inside RStudio**:
