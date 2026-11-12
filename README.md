@@ -34,10 +34,15 @@ install.packages(c("learnr", "rmarkdown", "shiny", "knitr", "tidyverse"))
 ```
 
 #### 2.5 Check that everything works
-Run the test tutorial and make sure every step works. If so, you are good to go for class! To run the tutorial, type the following in the RStudio R terminal:
+Open the BIOS-IN5410.Rproj RStudio project from your file tree or from within RStudio. Once you have done this, run the test tutorial and make sure every step works. If so, you are good to go for class! To run the tutorial, type the following in the RStudio R terminal:
 ```R
 rmarkdown::run("tutorials/check_installation.Rmd")
 ```
+
+## Summary of how to run the tutorials
+1. Ensure you have the most recent version of this repository with `git pull`: [see here](#23-clone-or-download-this-repository)
+2. Open the `BIOS-IN5410.Rproj` RStudio project: either by double clicking it in the file tree or with the project selector in the top right corner of RStudio (which says "Project: (None)" if you have no project open).
+3. Launch the relevant tutorial with `rmarkdown::run("tutorials/<tutorial>.Rmd)`
 
 ## Resources and texts
 This course is based on the following resources:
