@@ -1,0 +1,133 @@
+---
+title: "Check your installation"
+output:
+  learnr::tutorial:
+    progressive: false
+    allow_skip: true
+    mathjax: null
+runtime: shiny_prerendered
+tutorial:
+  id: "bios-in5410-check-installation"
+  version: 0.1
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+
+here <- if (dir.exists("tutorials/")) "tutorials/" else "."
+source(file.path(here, "shared", "checkers.R"))
+
+tutorial_options(
+    exercise.checker = bios_checker,
+    # Generous, because loading the tidyverse for the first time is slow.
+    exercise.timelimit = 60,
+    exercise.reveal_solution = FALSE,
+    exercise.startover = TRUE,
+    exercise.error.check.code = "check_error()"
+)
+
+# The oldest R the course material is tested against.
+min_r_version <- "4.2.0"
+
+# The packages installed in step 2.4 of the README.
+required_packages <- c("learnr", "rmarkdown", "shiny", "knitr", "tidyverse")
+```
+
+## What this is
+
+This short tutorial checks that you have done the **Preparations before class**
+in the course README correctly, and that the tutorials we use in class will run
+on your machine. It takes about a minute.
+
+The fact that you are reading this page already tells us a lot: R started,
+**rmarkdown**, **knitr**, **shiny** and **learnr** are installed, and your
+browser can display a tutorial. The steps below check the rest.
+
+Each step is a small R console with code already filled in.
+
+- **Run Code** runs the code and shows the result.
+- **Submit Answer** runs the code *and* checks it, then tells you whether that
+  part of your installation is in order.
+- **Start Over** restores the code to how it started.
+
+Work through the steps in order. If one of them fails, read the message, fix
+what it asks for (or ask for help), and press **Submit Answer** again.
+
+## Step 1: R
+
+The code below reports the version of R that is running this tutorial. Press
+**Submit Answer**.
+
+```{r r-version, exercise=TRUE, exercise.eval=TRUE}
+getRversion()
+```
+
+```{r r-version-check}
+if (getRversion() >= min_r_version) {
+    TRUE
+} else {
+    sprintf(
+        paste0(
+            "You are running R %s, but the course material is tested with R %s and ",
+            "newer. Install a newer R from https://cran.uib.no/, restart RStudio, ",
+            "and run this check again."
+        ),
+        getRversion(), min_r_version
+    )
+}
+```
+
+## Step 2: RStudio
+
+We work with R through RStudio, so this tutorial should have been started from
+the R console *inside* RStudio, with the `BIOS-IN5410.Rproj` project open. Press **Submit Answer**.
+
+```{r rstudio, exercise=TRUE, exercise.eval=TRUE}
+Sys.getenv("RSTUDIO") == "1"
+```
+
+```{r rstudio-check}
+if (isTRUE(.result)) {
+    TRUE
+} else {
+    paste0(
+        "This tutorial does not seem to be running inside RStudio. That is not ",
+        "fatal, but in class we will assume you use it. Install RStudio from ",
+        "https://posit.co/download/rstudio-desktop/, open BIOS-IN5410.Rproj in ",
+        "it, and start this check again from the RStudio R console. If you are ",
+        "deliberately using another editor, you can ignore this step."
+    )
+}
+```
+
+## Step 3: Required packages
+
+This checks the packages from step 2.4 of the README. Press **Submit Answer**.
+
+```{r packages, exercise=TRUE, exercise.eval=TRUE}
+required_packages[!required_packages %in% rownames(installed.packages())]
+```
+
+```{r packages-check}
+if (length(.result) == 0) {
+    TRUE
+} else {
+    paste0(
+        "These packages are not installed: ", paste(.result, collapse = ", "),
+        ". Run install.packages(c(",
+        paste0("\"", .result, "\"", collapse = ", "),
+        ")) in the RStudio R console, wait for it to finish, then press Submit ",
+        "Answer again."
+    )
+}
+```
+
+## Done
+
+If every step above came back green, your installation is complete and the
+class tutorials will run. Nothing else is required of you before class, except
+the reading in step 1 of the README.
+
+If something failed, make sure to get help before class.
+
+To stop this tutorial, simply close the browser tab.
