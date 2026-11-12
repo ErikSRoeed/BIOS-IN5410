@@ -11,15 +11,20 @@ You must install all necessary software before class. We will not be able to spe
 If you have a university-managed laptop, you might be able to install R and RStudio through a managed software portal (e.g. 'Managed Software Centre' on a UiO Mac). If you have difficulties installing R and RStudio on a university-managed machine, **consult your IT department**.
 
 #### 2.1 R
-You must install R before class (see https://www.r-project.org/). It's best to do so from an official mirror (such as https://cran.uib.no/).
+You must install R before class (see instructions at https://www.r-project.org/). The Norwegian mirror is hosted by UiB: https://cran.uib.no/.
 
 #### 2.2 RStudio
-We will work with R through an 'IDE': an 'Integrated Development Environment'. This is a text editor with features that are helpful for programming, such as syntax highlighting and a built-in file browser. The IDE we will use is a classic R IDE, and is called 'RStudio'. Again, please install it *before* class. See https://posit.co/download/rstudio-desktop/.
+We will work with R through an 'IDE': an 'Integrated Development Environment'. This is a text editor with features that are helpful for programming, such as syntax highlighting and a built-in file browser. The IDE we will use is a classic R IDE, and is called 'RStudio'. Again, please install it *before* class. See https://docs.posit.co/ide/user/download.html.
 
 #### 2.3 Clone or download this repository
 Clone this repository with git:
 ```sh
-git clone ...
+git clone https://github.com/ErikSRoeed/BIOS-IN5410
+```
+To update your local copy of the repository later, use git again:
+```sh
+git fetch --all
+git pull
 ```
 
 #### 2.4 Install the required packages
