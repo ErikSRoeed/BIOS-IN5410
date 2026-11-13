@@ -2,6 +2,15 @@
 
 > NB. I'm not going to stop you if you are curious, but the point of this repository is *not* to open, read, and "manually" interact with the files under `tutorials/`! Please follow the instructions below to show the student-facing content. The code files here are relatively complicated and you are most certainly not expected to understand them as part of the class. By all means ask how it works if you want to.
 
+## Table of contents
+- [Preparations before class](#preparations-before-class)
+  - [1. Readings](#1-readings)
+  - [2. Software](#2-software)
+- [Summary of how to run the tutorials](#summary-of-how-to-run-the-tutorials)
+- [Friday 2026.11.13](#friday-20261113)
+  - [14.15 - 17.00: Programming with R](#1415---1700-programming-with-r)
+- [Resources and texts](#resources-and-texts)
+
 ## Preparations before class
 ### 1. Readings
 Prior experience with programming (in R or otherwise) is not a formal entry requirement in BIOS-IN5410 and we will cover the basics in our first session. However, the less prior experience you have, the more you will benefit from diligent self-study (and the more you will struggle without it). Before class on Friday 2026.11.13 we highly advise you read *all* of https://rstudio-education.github.io/hopr/index.html (skip chapters 8, 10, and 12). You should make an effort to understand this book *before* class. If you have programming experience but have never touched R, this book will get you up to speed with R syntax.
