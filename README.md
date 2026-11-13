@@ -1,5 +1,7 @@
 # BIOS-IN5410: Working with R 
 
+> NB. I'm not going to stop you if you are curious, but the point of this repository is *not* to open, read, and "manually" interact with the files under `tutorials/`! Please follow the instructions below to show the student-facing content. The code files here are relatively complicated and you are most certainly not expected to understand them as part of the class. By all means ask how it works if you want to.
+
 ## Preparations before class
 ### 1. Readings
 Prior experience with programming (in R or otherwise) is not a formal entry requirement in BIOS-IN5410 and we will cover the basics in our first session. However, the less prior experience you have, the more you will benefit from diligent self-study (and the more you will struggle without it). Before class on Friday 2026.11.13 we highly advise you read *all* of https://rstudio-education.github.io/hopr/index.html (skip chapters 8, 10, and 12). You should make an effort to understand this book *before* class. If you have programming experience but have never touched R, this book will get you up to speed with R syntax.
@@ -39,6 +41,10 @@ Open the BIOS-IN5410.Rproj RStudio project from your file tree or from within RS
 ```R
 rmarkdown::run("tutorials/check_installation.Rmd")
 ```
+Or, for illustration:
+![A screenshot of typing the check_installation.Rmd call](assets/rstudio-1.png)
+This will open the tutorial in a new window:
+![A screenshot of the check_installation tutorial](assets/tutorial.png)
 
 ## Summary of how to run the tutorials
 1. Ensure you have the most recent version of this repository with `git pull`: [see here](#23-clone-or-download-this-repository)
