@@ -45,8 +45,12 @@ rmarkdown::run("tutorials/check_installation.Rmd")
 2. Open the `BIOS-IN5410.Rproj` RStudio project: either by double clicking it in the file tree or with the project selector in the top right corner of RStudio (which says "Project: (None)" if you have no project open).
 3. Launch the relevant tutorial with `rmarkdown::run("tutorials/<tutorial>.Rmd)`
 
+## Friday 2026.11.13
+### 14.15 - 17.00: Programming with R
+Today you will follow a self-paced (informal!) test covering the basic grammar of programming: variables, output, functions, loops, and conditional logic. Launch it with `rmarkdown::run("tutorials/programming.Rmd")`.
+
 ## Resources and texts
-This course is based on the following resources:
+This course is heavily inspired by the following resources:
 - Garrett Grolemund, "Hands-On Programming With R" (https://rstudio-education.github.io/hopr/)
 - Hadley Wickham, Mine Çetinkaya-Rundel, and Garrett Grolemund: "R for Data Science" 2nd ed. (https://r4ds.hadley.nz/)
 - Claus O. Wilke: "Fundamentals of Data Visualization" (https://clauswilke.com/dataviz/)

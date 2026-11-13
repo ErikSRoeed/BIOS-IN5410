@@ -12,18 +12,16 @@ tutorial:
 ---
 
 ```{r setup, include=FALSE}
-library(learnr)
+library(learnr) # nolint: undesirable_function_linter.
 
 here <- if (dir.exists("tutorials/")) "tutorials/" else "."
-source(file.path(here, "shared", "checkers.R"))
+source(file.path(here, "shared", "checkers.R")) # nolint: undesirable_function_linter.
 
 tutorial_options(
     exercise.checker = bios_checker,
-    # Generous, because loading the tidyverse for the first time is slow.
-    exercise.timelimit = 60,
+    exercise.timelimit = 60L,
     exercise.reveal_solution = FALSE,
-    exercise.startover = TRUE,
-    exercise.error.check.code = "check_error()"
+    exercise.startover = TRUE
 )
 
 # The oldest R the course material is tested against.
@@ -109,7 +107,7 @@ required_packages[!required_packages %in% rownames(installed.packages())]
 ```
 
 ```{r packages-check}
-if (length(.result) == 0) {
+if (length(.result) == 0L) {
     TRUE
 } else {
     paste0(

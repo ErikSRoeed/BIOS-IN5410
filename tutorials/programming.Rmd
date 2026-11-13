@@ -1,0 +1,764 @@
+---
+title: "Programming with R"
+output:
+  learnr::tutorial:
+    progressive: false
+    allow_skip: true
+    mathjax: null
+runtime: shiny_prerendered
+tutorial:
+  id: "bios-in5410-programming"
+  version: 0.4
+---
+
+```{r setup, include=FALSE}
+library(learnr) # nolint: undesirable_function_linter.
+
+here <- if (dir.exists("tutorials/")) "tutorials/" else "."
+source(file.path(here, "shared", "checkers.R")) # nolint: undesirable_function_linter.
+
+tutorial_options(
+    exercise.checker = bios_checker,
+    exercise.timelimit = 60L,
+    exercise.reveal_solution = FALSE,
+    exercise.startover = TRUE
+)
+
+# Everything below is available in every exercise in this tutorial.
+sample_names <- c("liver_A", "liver_B", "brain_A", "brain_B", "muscle_A")
+sample_reads <- c(7.2, 6.4, 9.1, 5.8, 8.3)
+sample_quality <- c(35.1, 31.8, 28.4, 36.2, 33.5)
+kept_reads <- 31L
+focal_quality <- 35.1
+quality_cutoff <- 32.0
+```
+
+## What this is
+
+This is an informal, self-paced test of the basics of programming, in the programming language R.
+Nothing here is assessed and you cannot break anything. The point is not to produce the right
+answer but to understand it, so there is nothing to be gained from pasting these exercises into a
+language model and copying back what it gives you.
+
+There are only five ideas in here, and they are the same five ideas in (pretty much) every programming language:
+
+1. **Variables**: giving a name to a value.
+2. **Output**: showing a value to a human.
+3. **Functions**: naming a piece of work so you can do it again.
+4. **Loops**: doing the same work once per item.
+5. **Conditions**: doing different work depending on the answer to a question.
+
+We will not cover specific analyses or packages here, which you can look up when you need them.
+The grammar here, though, is what you need in order to read a pipeline somebody else wrote and adapt it to
+your own data, which is what much of the rest of the course is about.
+
+Each step is a small R console (which may have some code already filled in).
+
+- **Run Code** runs the code and shows the result.
+- **Submit Answer** runs the code *and* checks the answer.
+- **Hint** shows a prompt you can copy, with the button in its corner, into whichever language
+  model you use.
+- **Start Over** restores the code to how it started.
+
+The hints are not hints in the usual sense: each one is a prompt you can give to a LLM to question
+you first and explain second, and not to write your answer for you. Use it the way you would use a
+teacher: to understand the idea, not to obtain the code. We will work with language models
+properly later in the course.
+
+The later steps all use the same small, invented dataset: five tissue samples we sent for
+sequencing, and the quality control numbers that came back. These are already loaded for you, in
+every step:
+
+- `sample_names` - the five samples: `"liver_A", "liver_B", "brain_A", "brain_B", "muscle_A"`
+- `sample_reads` - how many *reads* (sequenced fragments) each sample gave us, in millions:
+  `7.2, 6.4, 9.1, 5.8, 8.3`
+- `sample_quality` - each sample's mean *Phred score*, the sequencer's own confidence in the bases
+  it called, where higher is better: `35.1, 31.8, 28.4, 36.2, 33.5`
+- `kept_reads` - how many millions of reads survived filtering, `31`
+- `focal_quality` - the score of one sample we're interested in, `35.1`
+- `quality_cutoff` - the score this project draws the line at, `32`
+
+Work through the steps in order. Feel free to take your time (and to take breaks).
+If you struggle with any of these steps, first consult Hands-On Programming with R
+and try to figure out how this works yourself.
+Then ask around the table if someone can teach you. If you're still not convinced,
+raise a hand - we're here to help!
+
+## Step 1: Making variables
+
+A variable is a name pointing at a value. In R you point a name at a value with `<-`.
+
+Make three variables:
+
+- `read_length`, holding a number,
+- `sample_id`, holding a piece of text,
+- `passed_filter`, holding `TRUE` or `FALSE`.
+
+The values are up to you.
+
+```{r variables, exercise=TRUE, exercise.lines=5}
+
+```
+
+```{verbatim variables-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about naming values in R and about assignment with the arrow
+`<-`, and wait for my answer. Then explain only the part I am missing, in plain language, using a
+small example that is not my exercise. Do not write my answer for me and do not show me finished
+code for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: make three variables in R. `read_length` holds a number, `sample_id` holds a piece
+of text, and `passed_filter` holds TRUE or FALSE.
+```
+
+```{r variables-check}
+check_all(
+    check_type("read_length", c("double", "integer")),
+    check_type("sample_id", "character"),
+    check_type("passed_filter", "logical")
+)
+```
+
+## Step 2: Many values under one name
+
+A variable can hold a whole series of values, not just one. In R that's a *vector*, built with
+`c()`, and you reach into it with square brackets: `x[1]` is the first value.
+
+Make a variable `qualities` holding at least three numbers of your choosing. Then make a second
+variable, `second_quality`, holding the second value of `qualities` - without typing that number
+again.
+
+```{r vectors, exercise=TRUE, exercise.lines=5}
+
+```
+
+```{verbatim vectors-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about vectors in R, about holding several values under one
+name, and about getting one value back out by its position, and wait for my answer. Then explain
+only the part I am missing, in plain language, using a small example that is not my exercise. Do
+not write my answer for me and do not show me finished code for it. If I ask you for the answer,
+ask me what I have tried so far instead.
+
+My exercise is: make a variable `qualities` holding at least three numbers of my choosing, then
+make `second_quality` hold the second value of `qualities` without typing that number again.
+```
+
+```{r vectors-check}
+check_all(
+    check_type("qualities", c("double", "integer")),
+    check_equal(TRUE, length(qualities) >= 3L, message = "`qualities` needs three or more values."),
+    check_type("second_quality", c("double", "integer")),
+    check_equal(qualities[2L], second_quality, message = "`second_quality` isn't the second one.")
+)
+```
+
+## Step 3: Printing
+
+Making a value and showing a value are two different things. A script that works out the right
+answer but never shows it to you has done nothing useful.
+
+Print `sample_reads`, using `print()` explicitly. It is already loaded for you.
+
+```{r printing, exercise=TRUE, exercise.lines=3}
+
+```
+
+```{verbatim printing-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about the difference between making a value and showing it,
+and about what `print()` does in R, and wait for my answer. Then explain only the part I am
+missing, in plain language, using a small example that is not my exercise. Do not write my answer
+for me and do not show me finished code for it. If I ask you for the answer, ask me what I have
+tried so far instead.
+
+My exercise is: print the vector `sample_reads`, using `print()` explicitly.
+```
+
+```{r printing-check}
+check_all(
+    check_uses("print"),
+    check_output("7.2")
+)
+```
+
+## Step 4: Printing a sentence
+
+Numbers on their own are rarely useful output. Glue them into a sentence with `paste()`, which
+joins pieces together with spaces between them.
+
+Print exactly this sentence:
+
+```
+We kept 31 million reads.
+```
+
+The `31` must come from the variable `kept_reads`, which is already loaded for you, and not from
+you typing `31`. That way the sentence stays true when you re-run the filtering with different
+settings.
+
+```{r printing-sentence, exercise=TRUE, exercise.lines=4}
+
+```
+
+```{verbatim printing-sentence-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about joining text and numbers into one sentence in R with
+`paste()`, and wait for my answer. Then explain only the part I am missing, in plain language,
+using a small example that is not my exercise. Do not write my answer for me and do not show me
+finished code for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: print the sentence `We kept 31 million reads.`, where the 31 comes from a variable
+called `kept_reads` rather than from me typing it.
+```
+
+```{r printing-sentence-check}
+check_all(
+    check_uses("kept_reads"),
+    check_output("We kept 31 million reads.", fixed = TRUE)
+)
+```
+
+## Step 5: Your first function
+
+A function is a named piece of work. You give it inputs, it gives you back a value. Writing one
+means you can do that work again, anywhere, without re-reading how you did it.
+
+A function definition has four parts: the name, the word `function`, the inputs in round brackets,
+and the body in curly brackets. The shape is:
+
+```
+a_name <- function(an_input) {
+    work out the answer
+    return(the answer)
+}
+```
+
+Inside the body you refer to the input by the name you gave it. Defining a function does nothing
+on its own, so call it afterwards to see it work.
+
+Write a function `to_kilobases()` that takes one input, a length in bases, and **returns** that
+length in kilobases. (A kilobase is a thousand bases.)
+
+```{r function-return, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim function-return-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about what a function is, and about how to write one in R that
+takes an input and returns a value, and wait for my answer. Then explain only the part I am
+missing, in plain language, using a small example that is not my exercise. Do not write my answer
+for me and do not show me finished code for it. If I ask you for the answer, ask me what I have
+tried so far instead.
+
+My exercise is: write a function `to_kilobases()` that takes one input, a length in bases, and
+returns that length in kilobases.
+```
+
+```{r function-return-check}
+check_all(
+    check_uses("function"),
+    check_fun("to_kilobases", list(2500.0), 2.5),
+    check_fun("to_kilobases", list(400.0), 0.4)
+)
+```
+
+## Step 6: A function with two inputs
+
+Functions can take as many inputs as the work needs. Extra inputs go in the same round brackets,
+separated by commas.
+
+We sequenced 36.8 million reads in total, spread across five samples. On average, then, each
+sample got a fifth of them.
+
+Write a function `reads_per_sample()` that takes two inputs - a total number of reads and a number
+of samples - and returns the average, that is, the total divided by the number of samples.
+
+Name the inputs for what they are. `reads_per_sample(total_reads, sample_count)` tells the next
+reader what it needs; `reads_per_sample(x, y)` leaves them guessing.
+
+```{r function-two-args, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim function-two-args-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about functions with more than one input in R, and about how
+those inputs are named and passed in, and wait for my answer. Then explain only the part I am
+missing, in plain language, using a small example that is not my exercise. Do not write my answer
+for me and do not show me finished code for it. If I ask you for the answer, ask me what I have
+tried so far instead.
+
+My exercise is: write a function `reads_per_sample()` that takes a total number of reads and a
+number of samples, and returns the average number of reads per sample.
+```
+
+```{r function-two-args-check}
+check_all(
+    check_uses("function"),
+    check_fun("reads_per_sample", list(9.0, 4.0), 2.25),
+    check_fun("reads_per_sample", list(12.0, 5.0), 2.4)
+)
+```
+
+## Step 7: A function that prints
+
+A function can also do something rather than hand something back. Reporting is a good example:
+you want the same tidy line every time, so write it once.
+
+Write a function `report_sample()` that takes a sample name and a read count, and prints exactly:
+
+```
+liver_A: 7.2 million reads.
+```
+
+...when called as `report_sample("liver_A", 7.2)`. Note there is no space before the colon, so
+`paste()` won't do here: use `paste0()`, which joins pieces with nothing between them.
+
+```{r function-print, exercise=TRUE, exercise.lines=7}
+
+```
+
+```{verbatim function-print-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about the difference between a function that returns a value
+and one that prints, and about the difference between `paste()` and `paste0()`, and wait for my
+answer. Then explain only the part I am missing, in plain language, using a small example that is
+not my exercise. Do not write my answer for me and do not show me finished code for it. If I ask
+you for the answer, ask me what I have tried so far instead.
+
+My exercise is: write a function `report_sample()` that takes a sample name and a read count and
+prints `liver_A: 7.2 million reads.` when I call it as `report_sample("liver_A", 7.2)`.
+```
+
+```{r function-print-check}
+check_all(
+    check_uses("function"),
+    check_fun("report_sample", list("brain_B", 3.0), output = "brain_B: 3 million reads.")
+)
+```
+
+## Step 8: Your first loop
+
+A loop does the same work once per item. The `for` loop hands you one item at a time, under a
+name you choose. The shape is:
+
+```
+for (one_item in the_vector) {
+    do something with one_item
+}
+```
+
+The name you pick is yours, and it only exists inside the loop. Pick one that says what a single
+item is: `one_count` rather than `i`.
+
+Print each of the five values in `sample_reads`, one at a time, using a loop.
+
+```{r loop-print, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim loop-print-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about what a `for` loop is and how it works in R, and wait for
+my answer. Then explain only the part I am missing, in plain language, using a small example that
+is not my exercise. Do not write my answer for me and do not show me finished code for it. If I
+ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: print each of the five values in the vector `sample_reads`, one at a time, using
+a `for` loop.
+```
+
+```{r loop-print-check}
+check_all(
+    check_uses("for"),
+    check_equal(TRUE, length(.output) >= 5L, message = "I expected five lines, one per sample."),
+    check_output("7.2"),
+    check_output("8.3")
+)
+```
+
+## Step 9: A loop that remembers
+
+Loops become useful when each turn builds on the last. To do that you need a variable that is
+created *outside* the loop and updated *inside* it. If you create it inside, it is wiped clean on
+every turn and you end up with the last value only.
+
+Add up all of `sample_reads` with a loop, keeping the running total in a variable `total_reads`.
+
+Do it without `sum()`. The point of this step is the loop.
+
+```{r loop-total, exercise=TRUE, exercise.lines=8}
+
+```
+
+```{verbatim loop-total-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about keeping a running total across the turns of a loop, and
+about why the variable has to be created before the loop starts, and wait for my answer. Then
+explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: add up all the values in the vector `sample_reads` with a `for` loop, keeping the
+running total in a variable called `total_reads`, and without using `sum()`.
+```
+
+```{r loop-total-check}
+check_all(
+    check_uses("for"),
+    check_avoids("sum"),
+    check_type("total_reads", c("double", "integer")),
+    check_equal(sum(sample_reads), total_reads)
+)
+```
+
+## Step 10: A loop inside a function
+
+Step 9 only works for one particular vector. Wrap it in a function and it works for any of them.
+The loop does the work; the function makes the work reusable.
+
+Write a function `total_reads_of()` that takes a vector of read counts and returns their total,
+using a loop (still no `sum()`). Loop over the input the function was given, not over
+`sample_reads`: a function that only works on one particular variable is not reusable.
+
+```{r loop-function, exercise=TRUE, exercise.lines=9}
+
+```
+
+```{verbatim loop-function-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about putting a loop inside a function, and about why a
+function should work on whatever input it is given rather than on one particular variable, and
+wait for my answer. Then explain only the part I am missing, in plain language, using a small
+example that is not my exercise. Do not write my answer for me and do not show me finished code
+for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: write a function `total_reads_of()` that takes a vector of read counts and returns
+their total, using a loop and not `sum()`.
+```
+
+```{r loop-function-check}
+check_all(
+    check_uses("function"),
+    check_uses("for"),
+    check_avoids("sum"),
+    check_fun("total_reads_of", list(c(1.5, 2.5, 4.0)), 8.0),
+    check_fun("total_reads_of", list(c(10.0, 10.0)), 20.0)
+)
+```
+
+## Step 11: Calling a function from a loop
+
+This is why functions are worth writing. Below is one that is already written for you:
+`describe_sample()` takes a sample name and a read count, and returns a tidy sentence.
+
+Each line needs two things, and they live in two different vectors: the names are in
+`sample_names` and the counts are in `sample_reads`. Both are already loaded for you. A `for` loop
+only hands you one thing at a time, so loop over the *positions* instead, and use each position to
+pull a value out of each vector. Two things make that work:
+
+- `seq_along(x)` gives you the positions of `x`: 1, 2, 3, and so on.
+- `x[2]` gives you the value at position 2, as in Step 2.
+
+Write a loop that prints one line per sample, using `describe_sample()` for the wording. Your
+output should start with `liver_A: 7.2 million reads.` and end with `muscle_A: 8.3 million reads.`
+
+```{r loop-reuse, exercise=TRUE, exercise.lines=12}
+describe_sample <- function(name, count) {
+    return(paste0(name, ": ", count, " million reads."))
+}
+
+# Your loop goes here.
+```
+
+```{verbatim loop-reuse-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about looping over positions with `seq_along()` so that two
+vectors can be used together, and wait for my answer. Then explain only the part I am missing, in
+plain language, using a small example that is not my exercise. Do not write my answer for me and
+do not show me finished code for it. If I ask you for the answer, ask me what I have tried so far
+instead.
+
+My exercise is: I have a vector of names called `sample_names`, a vector of read counts called
+`sample_reads`, and a function `describe_sample(name, count)` that returns a sentence. Write a
+loop that prints one line per sample, using that function for the wording.
+```
+
+```{r loop-reuse-check}
+check_all(
+    check_uses("for"),
+    check_uses("describe_sample"),
+    check_output("liver_A: 7.2 million reads."),
+    check_output("muscle_A: 8.3 million reads.")
+)
+```
+
+## Step 12: Making a decision
+
+`if` runs some code only when a question is answered `TRUE`, and `else` covers the other case.
+The shape is:
+
+```
+if (the question) {
+    what to do when the answer is TRUE
+} else {
+    what to do otherwise
+}
+```
+
+The question is a comparison, such as `x > 10`. A comparison is itself just a value, `TRUE` or
+`FALSE`, so you can run one on its own and look at it.
+
+Two variables are already loaded for you here: `focal_quality`, the mean score of one sample we
+are interested in, and `quality_cutoff`, the score this project draws the line at.
+
+Set a variable `quality_class` to `"high"` if `focal_quality` is above `quality_cutoff`, and to
+`"low"` otherwise. Work it out in code. Don't read the two numbers yourself and type the answer
+in: the code should still be right if the score changes.
+
+```{r if-else, exercise=TRUE, exercise.lines=8}
+
+```
+
+```{verbatim if-else-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about `if` and `else` in R, and about how a comparison produces
+TRUE or FALSE, and wait for my answer. Then explain only the part I am missing, in plain language,
+using a small example that is not my exercise. Do not write my answer for me and do not show me
+finished code for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: set a variable `quality_class` to "high" if the variable `focal_quality` is above
+the variable `quality_cutoff`, and to "low" otherwise, working it out in code rather than reading
+the numbers myself.
+```
+
+```{r if-else-check}
+check_all(
+    check_uses("if"),
+    check_uses("focal_quality"),
+    check_type("quality_class", "character"),
+    check_equal("high", quality_class)
+)
+```
+
+## Step 13: A decision inside a function
+
+Same move as Step 10: take the decision you just made by hand, and make it reusable.
+
+Write a function `quality_class_of()` taking two inputs, a score and a cutoff, which returns
+`"high"` if the score is **above** the cutoff, and `"low"` otherwise.
+
+A score exactly equal to the cutoff counts as `"low"`, so think about which comparison you need:
+`>` or `>=`.
+
+```{r if-else-function, exercise=TRUE, exercise.lines=10}
+
+```
+
+```{verbatim if-else-function-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about putting an `if` and `else` inside a function in R, and
+about the difference between the comparisons `>` and `>=`, and wait for my answer. Then explain
+only the part I am missing, in plain language, using a small example that is not my exercise. Do
+not write my answer for me and do not show me finished code for it. If I ask you for the answer,
+ask me what I have tried so far instead.
+
+My exercise is: write a function `quality_class_of()` taking a score and a cutoff, which returns
+"high" if the score is above the cutoff and "low" otherwise, where a score exactly equal to the
+cutoff counts as "low".
+```
+
+```{r if-else-function-check}
+check_all(
+    check_uses("function"),
+    check_uses("if"),
+    check_fun("quality_class_of", list(35.0, 32.0), "high"),
+    check_fun("quality_class_of", list(22.0, 32.0), "low"),
+    check_fun("quality_class_of", list(32.0, 32.0), "low")
+)
+```
+
+## Step 14: A decision inside a loop
+
+Steps 9 and 13 each did half of this. In Step 9 a variable outside the loop kept a running total.
+In Step 13 an `if` asked a question about one score. Here you do both at once: ask the question
+once per score, and add one to the total only when the answer is `TRUE`.
+
+Write a function `count_above()` that takes a vector of scores and a cutoff, and returns how
+many of the scores are **above** that cutoff. Use a loop and an `if`, not `sum()`.
+
+An `if` with nothing to do otherwise needs no `else`: when the score is not above the cutoff,
+there is simply nothing to count.
+
+Then call it on `sample_quality` and `quality_cutoff`, to see how many of our five samples clear
+the line.
+
+```{r loop-if-count, exercise=TRUE, exercise.lines=12}
+
+```
+
+```{verbatim loop-if-count-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about combining a loop with an `if`, and about keeping a
+counter that only goes up when a condition is met, and wait for my answer. Then explain only the
+part I am missing, in plain language, using a small example that is not my exercise. Do not write
+my answer for me and do not show me finished code for it. If I ask you for the answer, ask me what
+I have tried so far instead.
+
+My exercise is: write a function `count_above()` that takes a vector of scores and a cutoff and
+returns how many of the scores are above that cutoff, using a loop and an `if` rather than
+`sum()`.
+```
+
+```{r loop-if-count-check}
+check_all(
+    check_uses("function"),
+    check_uses("for"),
+    check_uses("if"),
+    check_avoids("sum"),
+    check_fun("count_above", list(c(28.0, 33.0, 36.0), 32.0), 2.0),
+    check_fun("count_above", list(c(20.0, 25.0), 32.0), 0.0)
+)
+```
+
+## Step 15: Putting it all together
+
+Last one. It uses all five ideas at once, and it asks you to write **two** functions rather than
+one, because the two jobs here really are two different jobs.
+
+Write `report_quality()`, which takes a vector of sample names, a vector of scores, and a cutoff,
+and prints one line per sample saying whether that sample is high or low. Calling
+`report_quality(c("liver_A", "liver_B"), c(35.0, 22.0), 32.0)` should print:
+
+```
+liver_A: high
+liver_B: low
+```
+
+The decision about a *single* score is its own job, so give it its own function, exactly as Step
+13 did. `report_quality()` then loops over the positions, as in Step 11, and calls that function
+once per sample. As before, a score exactly equal to the cutoff counts as low.
+
+```{r report-quality, exercise=TRUE, exercise.lines=18}
+
+```
+
+```{verbatim report-quality-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can use basic programming and scripting to use and adapt existing
+analytical pipelines". I am working through a self-paced test of the basic grammar of programming:
+variables, output, functions, loops, and conditions. Assume I know almost no R.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about splitting a job between two functions, where one decides
+something about a single value and the other loops and calls it, and wait for my answer. Then
+explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: write a function `report_quality()` taking a vector of sample names, a vector of
+scores, and a cutoff, which prints one line per sample, such as "liver_A: high", where a sample is
+high when its score is above the cutoff and low otherwise.
+```
+
+```{r report-quality-check}
+check_all(
+    check_uses("function", times = 2L),
+    check_uses("for"),
+    check_uses("if"),
+    check_fun(
+        "report_quality",
+        list(c("tumour_A", "tumour_B"), c(35.0, 22.0), 32.0),
+        output = "tumour_A: high"
+    ),
+    check_fun(
+        "report_quality",
+        list(c("tumour_A", "tumour_B"), c(35.0, 22.0), 32.0),
+        output = "tumour_B: low"
+    ),
+    check_fun("report_quality", list("blood_C", 32.0, 32.0), output = "blood_C: low")
+)
+```
+
+## Done
+
+That's the lot. Between them, those fifteen steps are the whole basic grammar: variables,
+output, functions, loops, and conditions. Every analysis we write this course is essentially built from
+those five things (with some slightly more exotic syntax here and there, but we'll get back to how LLMs
+can relieve us of remembering some of that).
+
+If you're comfortable with all of this, you're good to go for next week! Nicely done.
+
+To stop this tutorial, simply close the browser tab.
