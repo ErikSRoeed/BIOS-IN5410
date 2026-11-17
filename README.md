@@ -9,6 +9,11 @@
 - [Summary of how to run the tutorials](#summary-of-how-to-run-the-tutorials)
 - [Friday 2026.11.13](#friday-20261113)
   - [14.15 - 17.00: Programming with R](#1415---1700-programming-with-r)
+- [Thursday 2026.11.19](#thursday-20261119)
+  - [09.15 - 12.00: Data science with R](#0915---1200-data-science-with-r)
+  - [13.15 - 16.00: Data visualisation with R](#1315---1600-data-visualisation-with-r)
+- [Friday 2026.11.20](#friday-20261120)
+  - [09.15 - 12.00: R on autopilot](#0915---1200-r-on-autopilot)
 - [Resources and texts](#resources-and-texts)
 
 ## Preparations before class
@@ -51,21 +56,30 @@ Open the BIOS-IN5410.Rproj RStudio project from your file tree or from within RS
 rmarkdown::run("tutorials/check_installation.Rmd")
 ```
 Or, for illustration:
-![A screenshot of typing the check_installation.Rmd call](assets/rstudio-1.png)
-This will open the tutorial in a new window:
-![A screenshot of the check_installation tutorial](assets/tutorial.png)
 
-## Summary of how to run the tutorials
-1. Ensure you have the most recent version of this repository with `git pull`: [see here](#23-clone-or-download-this-repository)
-2. Open the `BIOS-IN5410.Rproj` RStudio project: either by double clicking it in the file tree or with the project selector in the top right corner of RStudio (which says "Project: (None)" if you have no project open).
-3. Launch the relevant tutorial with `rmarkdown::run("tutorials/<tutorial>.Rmd)`
+![A screenshot of typing the check_installation.Rmd call](assets/rstudio-console-run-check-installation.png)
+This will open the tutorial in a new window:
+
+![A screenshot of the check_installation tutorial](assets/check-installation-tutorial.png)
 
 ## Friday 2026.11.13
 ### 14.15 - 17.00: Programming with R
 Today you will follow a self-paced (informal!) test covering the basic grammar of programming: variables, output, functions, loops, and conditional logic. Launch it with `rmarkdown::run("tutorials/programming.Rmd")`.
 
-## Resources and texts
-This course is heavily inspired by the following resources:
+## Thursday 2026.11.19
+### 09.15 - 10.00: Reproducible R
+Set up a reproducible and version-controlled RStudio project and connect it to your GitHub account. Follow [this exercise](/documents/reproducibility.md).
+
+### 10.00 - 10.15 Break
+Stretch your legs, think about something else, get some fresh air, talk to someone you don't know ... whatever you do, try to give your brain some time off!
+
+### 10.15 - 12.00: Writing and running scripts in R
+You may have been taught R as an interactive statistical software before: running line by line in the console. But R is a programming language, and it is good practice to treat it this way: for reproducibility, proper standalone scripts are non-negotiable. Let's make some! Follow [this exercise](/documents/scripts.md)
+
+### 12.00 - 13.15 Lunch break
+Our usual midday lunch break.
+
+## Further reading
 - Garrett Grolemund, "Hands-On Programming With R" (https://rstudio-education.github.io/hopr/)
 - Hadley Wickham, Mine Çetinkaya-Rundel, and Garrett Grolemund: "R for Data Science" 2nd ed. (https://r4ds.hadley.nz/)
 - Claus O. Wilke: "Fundamentals of Data Visualization" (https://clauswilke.com/dataviz/)
