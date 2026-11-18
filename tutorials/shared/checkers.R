@@ -31,6 +31,13 @@
 #   check_fun(name, args, expected)  call their function on fresh inputs
 #   check_all(...)                   first failing check wins
 #
+# For the rectangular data tutorial there are also:
+#   check_data()                     the answer is a data frame at all
+#   check_columns(expected, exactly) the answer has the right columns
+#   check_rows(expected)             the answer has the right number of rows
+#   check_values(column, expected)   one column holds the right values
+#   check_ggplot(geoms, aes, facet)  the answer is a plot of the right shape
+#
 # Inside a check chunk you can also use:
 #   .result     the value the student's code produced
 #   .output     the text their code printed, one element per line
@@ -298,6 +305,220 @@ bios_checker <- function(label,
                         "I called `%s` and expected %s, but your function gave %s.",
                         shown, .describe(expected), .describe(result)
                     ))
+                }
+                return(TRUE)
+            }
+
+            .name_list <- function(x) {
+                return(paste0("`", x, "`", collapse = ", "))
+            }
+
+            check_data <- function(actual = .result, message = NULL) {
+                if (is.data.frame(actual)) {
+                    return(TRUE)
+                }
+                return(message %||% sprintf(
+                    "This step should give back a table, but your code gave %s.",
+                    .describe(actual)
+                ))
+            }
+
+            check_columns <- function(expected, actual = .result, exactly = FALSE,
+                                      message = NULL) {
+                is_data <- check_data(actual)
+                if (!isTRUE(is_data)) {
+                    return(is_data)
+                }
+                found <- names(actual)
+                missing <- setdiff(expected, found)
+                if (length(missing) > 0L) {
+                    return(message %||% sprintf(
+                        "I could not find the column%s %s in your answer, which has %s.",
+                        if (length(missing) > 1L) "s" else "",
+                        .name_list(missing), .name_list(found)
+                    ))
+                }
+                extra <- setdiff(found, expected)
+                if (isTRUE(exactly) && length(extra) > 0L) {
+                    return(message %||% sprintf(
+                        "Your answer still has the column%s %s, which this step asks you to leave out.",
+                        if (length(extra) > 1L) "s" else "", .name_list(extra)
+                    ))
+                }
+                return(TRUE)
+            }
+
+            check_rows <- function(expected, actual = .result, message = NULL) {
+                is_data <- check_data(actual)
+                if (!isTRUE(is_data)) {
+                    return(is_data)
+                }
+                if (identical(as.integer(nrow(actual)), as.integer(expected))) {
+                    return(TRUE)
+                }
+                return(message %||% sprintf(
+                    "I expected %d row%s, but your answer has %d.",
+                    as.integer(expected), if (as.integer(expected) == 1L) "" else "s",
+                    nrow(actual)
+                ))
+            }
+
+            # Factors are compared as text, so that a student who keeps `Species`
+            # as a factor and one who turns it into text both pass.
+            check_values <- function(column, expected, actual = .result, sorted = FALSE,
+                                     tolerance = 1e-8, message = NULL) {
+                has_column <- check_columns(column, actual)
+                if (!isTRUE(has_column)) {
+                    return(has_column)
+                }
+                found <- actual[[column]]
+                if (is.factor(found)) {
+                    found <- as.character(found)
+                }
+                if (is.factor(expected)) {
+                    expected <- as.character(expected)
+                }
+                if (isTRUE(sorted)) {
+                    found <- sort(found)
+                    expected <- sort(expected)
+                }
+                ok <- isTRUE(all.equal(
+                    expected, found,
+                    tolerance = tolerance, check.attributes = FALSE
+                ))
+                if (ok) {
+                    return(TRUE)
+                }
+                return(message %||% sprintf(
+                    "The `%s` column is not what I expected. I expected %s, but your answer has %s.",
+                    column, .describe(expected), .describe(found)
+                ))
+            }
+
+            # "point" and "geom_point" both mean the GeomPoint class that a built
+            # plot actually carries, and a few geoms are built out of another one.
+            .geom_class <- function(name) {
+                aliases <- c(
+                    jitter = "GeomPoint", histogram = "GeomBar", freqpoly = "GeomPath",
+                    count = "GeomPoint"
+                )
+                bare <- sub("^geom_", "", name)
+                if (grepl("^Geom", bare)) {
+                    return(bare)
+                }
+                if (bare %in% names(aliases)) {
+                    return(unname(aliases[bare]))
+                }
+                parts <- strsplit(bare, "_", fixed = TRUE)[[1L]]
+                camel <- paste0(
+                    toupper(substr(parts, 1L, 1L)), substr(parts, 2L, nchar(parts)),
+                    collapse = ""
+                )
+                return(paste0("Geom", camel))
+            }
+
+            .geom_label <- function(name) {
+                bare <- sub("^geom_", "", name)
+                return(sprintf("`geom_%s()`", gsub("|", "()` or `geom_", bare, fixed = TRUE)))
+            }
+
+            # A plot's aesthetics may be set in ggplot() or in any layer, so all of
+            # them are collapsed into one list, with later settings winning.
+            .plot_aes <- function(plot) {
+                mappings <- c(list(plot$mapping), lapply(plot$layers, function(l) l$mapping))
+                merged <- list()
+                for (mapping in mappings) {
+                    for (name in names(mapping)) {
+                        merged[[name]] <- mapping[[name]]
+                    }
+                }
+                names(merged)[names(merged) == "color"] <- "colour"
+                return(merged)
+            }
+
+            .aes_label <- function(x) {
+                txt <- tryCatch(
+                    rlang::as_label(x),
+                    error = function(e) paste(deparse(x), collapse = "")
+                )
+                return(trimws(sub("^~", "", txt)))
+            }
+
+            .facet_vars <- function(plot) {
+                params <- plot$facet$params
+                return(names(c(params$facets, params$rows, params$cols)))
+            }
+
+            check_ggplot <- function(actual = .result, geoms = NULL, aes = NULL,
+                                     facet = NULL, rows = NULL, message = NULL) {
+                if (!inherits(actual, "ggplot")) {
+                    return(message %||% sprintf(
+                        "This step should give back a plot made with `ggplot()`, but your code gave %s.",
+                        if (is.data.frame(actual)) "a table" else .describe(actual)
+                    ))
+                }
+                found_geoms <- vapply(
+                    actual$layers, function(l) class(l$geom)[1L], character(1L)
+                )
+                for (geom in geoms) {
+                    wanted <- vapply(
+                        strsplit(geom, "|", fixed = TRUE)[[1L]], .geom_class, character(1L)
+                    )
+                    if (!any(wanted %in% found_geoms)) {
+                        return(message %||% sprintf(
+                            "I expected a %s layer on this plot, and I cannot find one.",
+                            .geom_label(geom)
+                        ))
+                    }
+                }
+                mapping <- .plot_aes(actual)
+                for (name in names(aes)) {
+                    if (!name %in% names(mapping)) {
+                        return(message %||% sprintf(
+                            "Nothing is mapped to `%s` in your plot. Set it inside `aes()`.", name
+                        ))
+                    }
+                    found <- .aes_label(mapping[[name]])
+                    if (!identical(found, aes[[name]])) {
+                        return(message %||% sprintf(
+                            "Your plot maps `%s` to `%s`, but this step needs `%s` there.",
+                            name, found, aes[[name]]
+                        ))
+                    }
+                }
+                if (!is.null(facet)) {
+                    facetted <- !inherits(actual$facet, "FacetNull")
+                    if (isTRUE(facet) && !facetted) {
+                        return(message %||% paste(
+                            "This plot needs one panel per group, so it needs `facet_wrap()`."
+                        ))
+                    }
+                    if (identical(facet, FALSE) && facetted) {
+                        return(message %||% "This step asks for one panel, without facetting.")
+                    }
+                    if (is.character(facet)) {
+                        if (!facetted) {
+                            return(message %||% sprintf(
+                                "This plot needs to be split into panels by `%s`, with `facet_wrap()`.",
+                                facet[1L]
+                            ))
+                        }
+                        missing <- setdiff(facet, .facet_vars(actual))
+                        if (length(missing) > 0L) {
+                            return(message %||% sprintf(
+                                "Your plot is facetted, but not by %s.", .name_list(missing)
+                            ))
+                        }
+                    }
+                }
+                if (!is.null(rows)) {
+                    if (!is.data.frame(actual$data)) {
+                        return(message %||% paste(
+                            "I could not see the data behind your plot. Pass it to `ggplot()`",
+                            "as the first argument, or pipe it in."
+                        ))
+                    }
+                    return(check_rows(rows, actual$data, message = message))
                 }
                 return(TRUE)
             }

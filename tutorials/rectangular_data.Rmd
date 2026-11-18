@@ -1,0 +1,1095 @@
+---
+title: "Handling and visualising rectangular data"
+output:
+  learnr::tutorial:
+    progressive: false
+    allow_skip: true
+    mathjax: null
+runtime: shiny_prerendered
+tutorial:
+  id: "bios-in5410-rectangular-data"
+  version: 0.1
+---
+
+```{r setup, include=FALSE}
+library(learnr) # nolint: undesirable_function_linter.
+library(dplyr) # nolint: undesirable_function_linter.
+library(tidyr) # nolint: undesirable_function_linter.
+library(ggplot2) # nolint: undesirable_function_linter.
+
+here <- if (dir.exists("tutorials/")) "tutorials/" else "."
+source(file.path(here, "shared", "checkers.R")) # nolint: undesirable_function_linter.
+
+tutorial_options(
+    exercise.checker = bios_checker,
+    exercise.timelimit = 60L,
+    exercise.reveal_solution = FALSE,
+    exercise.startover = TRUE
+)
+
+# Everything below is available in every exercise in this tutorial.
+iris_data <- datasets::iris |>
+    tibble::as_tibble() |>
+    mutate(flower_id = row_number()) |>
+    relocate(flower_id)
+
+iris_long <- iris_data |>
+    pivot_longer(
+        cols = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
+        names_to = "measurement",
+        values_to = "value"
+    )
+```
+
+## What this is
+
+Lots of biological data is just a table. The rows of the table are the samples (individuals, cells,
+etc.) you measured and each column holds information, including things you already knew (sample id,
+etc.) and things you measured (genotype, metabolic rate, etc.). We can call tables rectangular data
+because they are two-dimensional and are defined by their width and height (columns and rows) but
+are not (necessarily) of _equal_ width and height. You
+can have any arbitrary number of samples and any arbitrary number of measurements per sample.
+Formally, we often call the rows _observations_ and the columns _features_, i.e. one sample is an
+observation, and all measurements of that sample are its features.
+
+This tutorial walks through a handful of operations that help you manipulate a rectangular table in
+order to extract useful information. You will also turn the tables into figures.
+
+We will use functions from the **tidyverse**, a family of R packages that share a syntax. The
+tidyverse is an industry standard for data science. Three of the **tidyverse** packages matter here:
+
+- **dplyr**, for manipulating a table's _content_: `select()`, `rename()`, `filter()`, `mutate()`,
+  `summarise()`, `group_by()`.
+- **tidyr**, for changing a table's *shape*: `pivot_longer()` and `pivot_wider()`.
+- **ggplot2**, for plotting a table.
+
+They are already loaded for you in every step, so you do not need to load them with `library()` here
+(you *will* need to in your own scripts).
+
+Each step is a small R console, which may have some code already filled in.
+
+- **Run Code** runs the code and shows the result.
+- **Submit Answer** runs the code *and* checks the answer.
+- **Hint** shows a prompt you can copy, with the button in its corner, into whichever language model
+  you use.
+- **Start Over** restores the code to how it started.
+
+The hints are not hints in the usual sense: each one is a prompt you can give to a LLM to question
+you first and explain second, and not to write your answer for you. Use it the way you would use a
+teacher: to understand the idea, not to obtain the code.
+
+Every step uses the `iris` dataset, which is built into R: the lengths and widths of the sepals and
+petals of 150 iris flowers, 50 each of three species. You met it in the scripts exercise. Two
+versions of it are loaded for you in every step:
+
+- `iris_data` - the flowers themselves, 150 rows and six columns: `flower_id`, `Sepal.Length`,
+  `Sepal.Width`, `Petal.Length`, `Petal.Width`, and `Species`.
+- `iris_long` - the same data in a different shape, which you will meet in Step 12: 600 rows of
+  `flower_id`, `Species`, `measurement`, and `value`.
+
+Having both ready means no step depends on you getting the one before it exactly right.
+
+Work through the steps in order, and take your time. If you get stuck, try it yourself first, then
+ask the people around you, then raise a hand - we're here to help!
+
+## Step 1: What a table is, to R
+
+You have already learned about vectors: multiple values of the same kind under one name, like
+`numbers <- c(5.1, 4.9, 4.7)`.
+
+If you stand multiple vectors of the same length side by side, give them names, and call them
+columns like in a table, you get a **data frame** And a data frame is essentially a table where each
+column is a vector.
+
+You can print a data frame. When we use data frames in the tidyverse, `print()` will show the first
+ten rows rather than all 150, with a helpful header line giving the size of the table and the type
+of each column under its name. (That header calls the table a *tibble*; this is a tidyverse feature
+we will ignore here).
+
+Here are three tricks worth knowing:
+
+- `nrow(x)` and `ncol(x)` give the number of rows and columns.
+- `names(x)` gives the column names.
+- `x$a_column` gets one column as a plain vector.
+
+Do these three things with `iris_data`, in this order: print the table, print the number of rows in
+the table, and then store the `Petal.Length` column in a variable called `petal_lengths`.
+
+```{r data-frame, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim data-frame-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about data frames.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about how a data frame relates to the vectors I have already
+met, and about how to get one column out of a data frame with `$`, and wait for my answer. Then
+explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: with a data frame called `iris_data`, print it, print how many rows it has, and
+store its `Petal.Length` column in a variable called `petal_lengths`.
+```
+
+```{r data-frame-check}
+check_all(
+    check_uses("nrow"),
+    check_output("flower_id"),
+    check_output("150"),
+    check_type("petal_lengths", c("double", "integer")),
+    check_equal(
+        iris_data$Petal.Length, petal_lengths,
+        message = "`petal_lengths` should be the whole `Petal.Length` column of `iris_data`."
+    )
+)
+```
+
+## Step 2: Choosing columns with `select()`
+
+From now on you will use functions from the `dplyr` package. These functions each do one thing to a
+table, and they all have the same basic syntax: the table is always the first argument, then follows
+the other function arguments. The functions output the result as a new table. Here is an example:
+
+```
+select(a_table, pick_this_column, pick_that_column)
+```
+
+`select()` keeps the columns you name and drops the rest. Note what it does **not** do: it does not
+change `iris_data`. These functions return a new table and leave the original alone.
+
+Use `select()` on `iris_data` to keep exactly four columns: `flower_id`, `Species`, `Petal.Length`,
+and `Petal.Width`.
+
+```{r select-columns, exercise=TRUE, exercise.lines=5}
+
+```
+
+```{verbatim select-columns-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about dplyr's `select()`, about how its arguments are written
+(bare column names, no quotes), and about the fact that it returns a new table rather than
+changing the old one, and wait for my answer. Then explain only the part I am missing, in plain
+language, using a small example that is not my exercise. Do not write my answer for me and do not
+show me finished code for it. If I ask you for the answer, ask me what I have tried so far
+instead.
+
+My exercise is: use `select()` on a data frame called `iris_data` to keep only the columns
+`flower_id`, `Species`, `Petal.Length` and `Petal.Width`.
+```
+
+```{r select-columns-check}
+check_all(
+    check_uses("select"),
+    check_columns(
+        c("flower_id", "Species", "Petal.Length", "Petal.Width"),
+        exactly = TRUE
+    ),
+    check_rows(150L),
+    check_values("Petal.Length", iris_data$Petal.Length)
+)
+```
+
+## Step 3: Renaming columns with `rename()`
+
+Column names in public datasets or datasets from collaborators are not always the names you want to
+work with. The name `Petal.Length` in the iris dataset is fine ... but what if you encounter a
+column name like `OD600_t0_rep1 (corrected)`? Renaming early and once is better than typing an
+awkward name correctly forty times.
+
+`rename()` takes the new name first and the old name second:
+
+```
+rename(a_table, new_name = old_name)
+```
+Use `rename()` on `iris_data` to rename `Petal.Length` to `petal_length` and `Petal.Width` to
+`petal_width`. Leave the other four columns alone.
+
+```{r rename-columns, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim rename-columns-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about dplyr's `rename()` and about which side of the `=` the
+new name goes on, and wait for my answer. Then explain only the part I am missing, in plain
+language, using a small example that is not my exercise. Do not write my answer for me and do not
+show me finished code for it. If I ask you for the answer, ask me what I have tried so far
+instead.
+
+My exercise is: use `rename()` on a data frame called `iris_data` to rename the column
+`Petal.Length` to `petal_length` and the column `Petal.Width` to `petal_width`, leaving the other
+columns alone.
+```
+
+```{r rename-columns-check}
+check_all(
+    check_uses("rename"),
+    check_columns(
+        c("flower_id", "Sepal.Length", "Sepal.Width", "petal_length", "petal_width", "Species"),
+        exactly = TRUE
+    ),
+    check_rows(150L),
+    check_values("petal_length", iris_data$Petal.Length)
+)
+```
+
+## Step 4: The pipe, `|>`
+
+Real data science usually needs more than a single function call. It's more likely to be a chain of
+functions: e.g. select columns, then rename the columns, then filter the data, then summarise it.
+There are actually three ways to write that sequence of operations (functions), and they are
+equivalent.
+
+You can "nest" the calls, which reads inside-out, backwards from the order you did the work in:
+
+```
+rename(select(iris_data, flower_id, Species), id = flower_id)
+```
+
+This selects two columns from `iris_data` and *then* renames one of them. Likewise, you can store
+each step in a variable, which reads in the "right" order but makes up intermediate variables:
+
+```
+step_one <- select(iris_data, flower_id, Species)
+step_two <- rename(step_one, id = flower_id)
+```
+
+Alternatively, often preferably, you can use a **pipe**, `|>`. The pipe takes whatever is on its
+left and puts it in as the first argument of the call on its right. In other words `x |> f(y)` is
+`f(x, y)`:
+
+```
+iris_data |>
+    select(flower_id, Species) |>
+    rename(id = flower_id)
+```
+
+Read `|>` as "and then". Because every `dplyr` function takes a table as its first argument and
+returns a table, calls chain together like this indefinitely, and the chain reads top to bottom in
+the order the work happens.
+
+Write **one** pipeline, starting from `iris_data`, that selects `flower_id`, `Species`,
+`Petal.Length` and `Petal.Width`, and then renames those last three to `species`, `petal_length` and
+`petal_width`.
+
+```{r the-pipe, exercise=TRUE, exercise.lines=8}
+
+```
+
+```{verbatim the-pipe-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about the native R pipe `|>`, about why `x |> f(y)` is the
+same as `f(x, y)`, and about why that works for every dplyr function, and wait for my answer.
+Then explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: write one pipeline starting from a data frame called `iris_data` that uses
+`select()` to keep `flower_id`, `Species`, `Petal.Length` and `Petal.Width`, and then uses
+`rename()` to rename those last three to `species`, `petal_length` and `petal_width`.
+```
+
+```{r the-pipe-check}
+check_all(
+    check_uses("select"),
+    check_uses("rename"),
+    check_equal(
+        TRUE, grepl("|>", .user_code, fixed = TRUE),
+        message = "Join the two function calls into one pipeline with the pipe, `|>`."
+    ),
+    check_columns(
+        c("flower_id", "species", "petal_length", "petal_width"),
+        exactly = TRUE
+    ),
+    check_rows(150L),
+    check_values("petal_length", iris_data$Petal.Length)
+)
+```
+
+## Step 5: Choosing rows with `filter()`
+
+You have used `select()` to choose columns. Another function, `filter()`, chooses rows. You give it
+a question about each row, and it keeps the rows where the answer is `TRUE` - the same comparisons
+you used with `if` in the programming tutorial, asked of every row at once instead of one value at a
+time.
+
+```
+iris_data |>
+    filter(Petal.Length > 5)
+```
+
+Remember that equivalence is compared with `==` and text needs quotes. Several conditions separated
+by commas mean *all of them must be TRUE*:
+
+```
+iris_data |>
+    filter(Species == "setosa", Petal.Length > 1.5)
+```
+
+Starting from `iris_data`, keep only the flowers that are of species `virginica` **and** have a
+`Petal.Length` greater than 6.
+
+```{r filter-rows, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim filter-rows-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about dplyr's `filter()`, about comparing text with `==` and
+quotes, and about what it means to give `filter()` more than one condition, and wait for my
+answer. Then explain only the part I am missing, in plain language, using a small example that is
+not my exercise. Do not write my answer for me and do not show me finished code for it. If I ask
+you for the answer, ask me what I have tried so far instead.
+
+My exercise is: starting from a data frame called `iris_data`, use `filter()` to keep only the rows
+where `Species` is "virginica" and `Petal.Length` is greater than 6.
+```
+
+```{r filter-rows-check}
+expected <- dplyr::filter(iris_data, Species == "virginica", Petal.Length > 6)
+
+check_all(
+    check_uses("filter"),
+    check_columns(names(iris_data), exactly = TRUE),
+    check_rows(nrow(expected)),
+    check_values("Petal.Length", expected$Petal.Length)
+)
+```
+
+## Step 6: New columns with `mutate()`
+
+The function `mutate()` adds a new column based on columns already in the table. It takes the new
+column's name first, as `rename()` does, and then a recipe for its values second:
+
+```
+iris_data |>
+    mutate(sepal_area = Sepal.Length * Sepal.Width)
+```
+
+If the name you give already exists, `mutate()` overwrites that column instead of adding one. The
+recipe is written as though the columns were single values, but it runs on whole columns at once:
+`Sepal.Length * Sepal.Width` multiplies the first sepal length by the first sepal width, the second
+by the second, and so on.
+
+Starting from `iris_data`, add a column `petal_area`, holding `Petal.Length` multiplied by
+`Petal.Width`.
+
+```{r mutate-column, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim mutate-column-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about dplyr's `mutate()`, and about why arithmetic on two
+columns gives a whole new column rather than a single number, and wait for my answer. Then
+explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: starting from a data frame called `iris_data`, use `mutate()` to add a column
+`petal_area` holding `Petal.Length` multiplied by `Petal.Width`.
+```
+
+```{r mutate-column-check}
+check_all(
+    check_uses("mutate"),
+    check_columns(c(names(iris_data), "petal_area"), exactly = TRUE),
+    check_rows(150L),
+    check_values("petal_area", iris_data$Petal.Length * iris_data$Petal.Width)
+)
+```
+
+## Step 7: Summarising with `summarise()`
+
+The functions so far return a table of roughly the same shape, but what if you want to condense the
+values in the table into summary statistics? The function `summarise()` boils the whole table down
+to **one row**, with whatever summary values you specify.
+
+```
+iris_data |>
+    summarise(mean_sepal_length = mean(Sepal.Length))
+```
+
+As with `mutate()`, you name the result columns. But unlike with mutate, you want functions that
+return single values, e.g. `mean(Sepal.Length)`. Useful summaries include `mean()`, `median()`,
+`sd()`, `min()`, `max()`, and also plain `n()`, without arguments, which counts rows.
+
+Starting from `iris_data`, produce a one-row table with three columns - `mean_petal_length`,
+`median_petal_length` and `sd_petal_length` - holding the mean, the median and the standard
+deviation of `Petal.Length`. The functions you need are `mean()`, `median()` and `sd()`.
+
+```{r summarise-one, exercise=TRUE, exercise.lines=6}
+
+```
+
+```{verbatim summarise-one-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about dplyr's `summarise()`, about how it differs from
+`mutate()` in the shape of what it gives back, and about asking it for several summaries at once,
+and wait for my answer. Then explain only the part I am missing, in plain language, using a small
+example that is not my exercise. Do not write my answer for me and do not show me finished code
+for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: starting from a data frame called `iris_data`, use `summarise()` to produce a
+one-row table with columns `mean_petal_length`, `median_petal_length` and `sd_petal_length`,
+holding the mean, median and standard deviation of the `Petal.Length` column.
+```
+
+```{r summarise-one-check}
+check_all(
+    check_uses(c("summarise", "summarize")),
+    check_rows(1L),
+    check_columns(
+        c("mean_petal_length", "median_petal_length", "sd_petal_length"),
+        exactly = TRUE
+    ),
+    check_values("mean_petal_length", mean(iris_data$Petal.Length)),
+    check_values("median_petal_length", median(iris_data$Petal.Length)),
+    check_values("sd_petal_length", sd(iris_data$Petal.Length))
+)
+```
+
+## Step 8: Summarising by group with `group_by()`
+
+Okay, one mean for 150 flowers of three different species is not necessarily a useful number. Let's
+say we want is one mean per species. We can get to this with `group_by()`. This function marks a
+table as being made of groups, so that a `summarise()` function call after it runs once per group
+instead of once on the whole table.
+
+```
+iris_data |>
+    group_by(Species) |>
+    summarise(mean_sepal_length = mean(Sepal.Length))
+```
+
+Here we pass three species in and get three rows out. `summarise()` keeps the grouping column so you
+can tell which row is which.
+
+Starting from `iris_data`, produce one row per species, with `mean_petal_length` holding the mean
+`Petal.Length` of that species and `n_flowers` holding how many flowers it has (use `n()`).
+
+```{r group-summarise, exercise=TRUE, exercise.lines=8}
+
+```
+
+```{verbatim group-summarise-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about dplyr's `group_by()`, about what it changes in the
+`summarise()` that follows it, and about what `n()` counts, and wait for my answer. Then explain
+only the part I am missing, in plain language, using a small example that is not my exercise. Do
+not write my answer for me and do not show me finished code for it. If I ask you for the answer,
+ask me what I have tried so far instead.
+
+My exercise is: starting from a data frame called `iris_data`, use `group_by()` and `summarise()` to
+get one row per species, with `mean_petal_length` holding the mean `Petal.Length` of that species
+and `n_flowers` holding the number of flowers in it.
+```
+
+```{r group-summarise-check}
+expected <- iris_data |>
+    dplyr::group_by(Species) |>
+    dplyr::summarise(
+        mean_petal_length = mean(Petal.Length),
+        n_flowers = dplyr::n(),
+        .groups = "drop"
+    )
+
+check_all(
+    check_uses("group_by"),
+    check_uses(c("summarise", "summarize")),
+    check_rows(3L),
+    check_columns(c("Species", "mean_petal_length", "n_flowers"), exactly = TRUE),
+    check_values("Species", expected$Species, sorted = TRUE),
+    check_values("mean_petal_length", expected$mean_petal_length, sorted = TRUE),
+    check_values("n_flowers", expected$n_flowers)
+)
+```
+
+## Step 9: A whole pipeline
+
+Let's build a whole pipeline that does some meaningful work. When we write a pipeline, the code
+reads as a description of the work:
+
+```
+start with the data, and then
+    keep the rows I care about, and then
+    work out the column I need, and then
+    split by group, and then
+    summarise each group
+```
+
+You'll notice that order matters. For instance, if you filter before you summarise, you summarise
+only the rows you kept. If you filter afterwards, it is too late to filter individuals, because the
+individual rows are gone.
+
+Write one pipeline, starting from `iris_data`, that:
+
+1. keeps only flowers with `Sepal.Length` greater than 5,
+2. adds a column `petal_area`, being `Petal.Length` times `Petal.Width`,
+3. groups by `Species`,
+4. and summarises each species as `mean_petal_area`, the mean of `petal_area`, and `n_flowers`, the
+   number of flowers.
+
+```{r pipeline, exercise=TRUE, exercise.lines=12}
+
+```
+
+```{verbatim pipeline-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about dplyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about chaining several dplyr functions with the pipe, and
+about why the order of `filter()`, `mutate()`, `group_by()` and `summarise()` changes the answer,
+and wait for my answer. Then explain only the part I am missing, in plain language, using a small
+example that is not my exercise. Do not write my answer for me and do not show me finished code
+for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: write one pipeline from a data frame called `iris_data` that keeps flowers with
+`Sepal.Length` greater than 5, adds `petal_area` as `Petal.Length` times `Petal.Width`, groups by
+`Species`, and summarises each species as `mean_petal_area` and `n_flowers`.
+```
+
+```{r pipeline-check}
+expected <- iris_data |>
+    dplyr::filter(Sepal.Length > 5) |>
+    dplyr::mutate(petal_area = Petal.Length * Petal.Width) |>
+    dplyr::group_by(Species) |>
+    dplyr::summarise(
+        mean_petal_area = mean(petal_area),
+        n_flowers = dplyr::n(),
+        .groups = "drop"
+    )
+
+check_all(
+    check_uses("filter"),
+    check_uses("mutate"),
+    check_uses("group_by"),
+    check_uses(c("summarise", "summarize")),
+    check_rows(nrow(expected)),
+    check_columns(c("Species", "mean_petal_area", "n_flowers"), exactly = TRUE),
+    check_values("mean_petal_area", expected$mean_petal_area, sorted = TRUE),
+    check_values("n_flowers", expected$n_flowers, sorted = TRUE)
+)
+```
+
+## Step 10: Your first ggplot
+
+Figures are often much easier to read than tables, especially if you have lots of data. The package
+`ggplot2` builds a plot from a table and some instructions:
+
+```
+ggplot(iris_data, aes(x = Sepal.Width, y = Sepal.Length)) +
+    geom_point()
+```
+
+The `aes()` describes a "mapping" - "put `Sepal.Width` on the x axis, `Sepal.Length` on the y axis".
+A geom is a visual representation of the mapped data, for instance `geom_point()` which draw the
+mapped variables in each row as points. Mappings are always to *columns* and the other properties of
+the figures you can map include `colour` (outline colour, usually), `shape`, `size` and `fill` (fill
+colour).
+
+Note the `+` rather than `|>`. Pipes pass a table along a chain of function calls; `+` adds another
+layer to a plot. They are different operations. In a pipeline you will see both:
+`data |> some_function() |> ggplot(...) + geom_...()`.
+
+Make a scatter plot from `iris_data` with `Petal.Width` on the x axis, `Petal.Length` on the y axis,
+and the points coloured by `Species`.
+
+```{r first-plot, exercise=TRUE, exercise.lines=8}
+
+```
+
+```{verbatim first-plot-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about ggplot2.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about `ggplot()`, about what `aes()` is for, about what a geom
+is, and about why layers are joined with `+` rather than the pipe, and wait for my answer. Then
+explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: using a data frame called `iris_data`, draw a scatter plot with `Petal.Width` on the
+x axis, `Petal.Length` on the y axis, and points coloured by `Species`.
+```
+
+```{r first-plot-check}
+check_all(
+    check_ggplot(
+        geoms = "point",
+        aes = list(x = "Petal.Width", y = "Petal.Length", colour = "Species"),
+        rows = 150L
+    )
+)
+```
+
+## Step 11: Plotting a summary
+
+The `ggplot2` package can plot whatever table you want. That table does not have to be raw data.
+Often the plot you want is a plot of a summary, for instance:
+
+```
+iris_data |>
+    group_by(Species) |>
+    summarise(mean_sepal_width = mean(Sepal.Width)) |>
+    ggplot(aes(x = Species, y = mean_sepal_width)) +
+    geom_col() +
+    labs(x = "Species", y = "Mean sepal width (cm)")
+```
+
+`geom_col()` draws one bar per row, with the height you give it in `y`. (Its cousin `geom_bar()`
+would count the rows for you, too, but here we do the counting with summarise.) Mind the switch from
+`|>` to `+` at the plotting step.
+
+`labs()` is another layer, added with `+` like a geom, and it sets the labels: `x` and `y` for the
+horizontal and vertical axes.
+
+Write one pipeline from `iris_data` that groups by `Species`, summarises `mean_petal_length` as the
+mean of `Petal.Length`, and then draws that as a column chart with `Species` on the x axis and
+`mean_petal_length` on the y axis. Add `labs()` to give the y axis the label
+`"Mean petal length (cm)"`.
+
+```{r plot-summary, exercise=TRUE, exercise.lines=12}
+
+```
+
+```{verbatim plot-summary-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about ggplot2.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about piping a summarised table straight into `ggplot()`,
+about the difference between `geom_col()` and `geom_bar()`, and about `labs()`, and wait for my
+answer. Then explain only the part I am missing, in plain language, using a small example that is
+not my exercise. Do not write my answer for me and do not show me finished code for it. If I ask
+you for the answer, ask me what I have tried so far instead.
+
+My exercise is: write one pipeline from a data frame called `iris_data` that groups by `Species`,
+summarises `mean_petal_length` as the mean of `Petal.Length`, and draws a column chart of it with
+`Species` on the x axis, plus a `labs()` call setting the y axis label to "Mean petal length
+(cm)".
+```
+
+```{r plot-summary-check}
+check_all(
+    check_uses("group_by"),
+    check_uses(c("summarise", "summarize")),
+    check_uses("labs"),
+    check_ggplot(
+        geoms = "col|bar",
+        aes = list(x = "Species", y = "mean_petal_length"),
+        rows = 3L
+    )
+)
+```
+
+## Step 12: Making a table longer with `pivot_longer()`
+
+`iris_data` has four measurement columns: `Sepal.Length`, `Sepal.Width`, `Petal.Length` and
+`Petal.Width`. That is a so-called **wide** table layout: one row per flower, one column per
+measurement. For 150 flowers, four measurements is 600 numbers.
+
+The alternative layout is **long**: one row per *measurement*, with one column saying which
+measurement it was and another holding the number. The same 600 numbers, but 600 rows instead of
+150.
+
+Long is not better than wide but they are useful in different places, as the next steps will show.
+
+To go from wide to long, you can use the `pivot_longer()` function (from the package `tidyr`):
+```
+iris_data |>
+    pivot_longer(
+        cols = c(Sepal.Length, Sepal.Width),
+        names_to = "measurement",
+        values_to = "value"
+    )
+```
+
+`cols` says which columns to fold up, `names_to` names the new column that will hold the old column
+*names*, and `values_to` names the new column that will hold their *values*. Columns you do not list
+- `flower_id`, `Species` - are left alone and simply repeat down the new rows.
+
+Fold all four measurement columns of `iris_data` into a column `measurement` and a column `value`.
+You can list the four columns by name, or save yourself the typing with a helper such as
+`ends_with("Length")`, `starts_with("Sepal")`, or `c(Sepal.Length:Petal.Width)`.
+
+```{r pivot-longer, exercise=TRUE, exercise.lines=10}
+
+```
+
+```{verbatim pivot-longer-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about tidyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about wide and long layouts, and about what the `cols`,
+`names_to` and `values_to` arguments of `pivot_longer()` each do, and wait for my answer. Then
+explain only the part I am missing, in plain language, using a small example that is not my
+exercise. Do not write my answer for me and do not show me finished code for it. If I ask you for
+the answer, ask me what I have tried so far instead.
+
+My exercise is: starting from a data frame called `iris_data`, which has columns `flower_id`,
+`Sepal.Length`, `Sepal.Width`, `Petal.Length`, `Petal.Width` and `Species`, use `pivot_longer()`
+to fold the four measurement columns into a column `measurement` holding the old column names and
+a column `value` holding the numbers.
+```
+
+```{r pivot-longer-check}
+check_all(
+    check_uses("pivot_longer"),
+    check_rows(600L),
+    check_columns(c("flower_id", "Species", "measurement", "value"), exactly = TRUE),
+    check_values("value", iris_long$value, sorted = TRUE),
+    check_values("measurement", iris_long$measurement, sorted = TRUE)
+)
+```
+
+## Step 13: A plot that needs long data
+
+So why would we want long instead of wide data? This is often a question of mere practicality to
+format your data for some visualisation or analysis you want. Suppose you want to visualise all four
+measurements side by side, as one small plot each, so that the species can be compared across every
+measurement at once.
+
+In wide form you cannot really do this with `ggplot2`: the four measurements live in four different
+columns, and `aes()` in ggplot maps one column to one property. You would have to write the plot
+four times.
+
+In long form, however, it is easily one plot, because "measurement" has become a column - and any
+columns can be mapped to a so-called `facet` function, which splits the picture into one panel per
+value:
+
+```
+iris_long |>
+    ggplot(aes(x = Species, y = value)) +
+    geom_boxplot() +
+    facet_wrap(~ measurement) # Note the ~, which reads as "by", i.e. "facet by measurement"
+```
+
+The tutorial has already prepared `iris_long` for you - it is `iris_data` pivoted exactly as you did
+in the last step, with columns `flower_id`, `Species`, `measurement` and `value`.
+
+Using `iris_long`, draw a boxplot with `Species` on the x axis and `value` on the y axis, facetted
+by `measurement`. Give the panels their own y axis ranges by adding the argument `scales = "free_y"`
+to `facet_wrap()` (since sepals and petals are on quite different scales).
+
+```{r plot-long, exercise=TRUE, exercise.lines=10}
+
+```
+
+```{verbatim plot-long-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about ggplot2 or tidyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about why a facetted plot needs long data, about
+`geom_boxplot()`, and about the `~` and the `scales` argument in `facet_wrap()`, and wait for my
+answer. Then explain only the part I am missing, in plain language, using a small example that is
+not my exercise. Do not write my answer for me and do not show me finished code for it. If I ask
+you for the answer, ask me what I have tried so far instead.
+
+My exercise is: using a long data frame called `iris_long`, with columns `flower_id`, `Species`,
+`measurement` and `value`, draw a boxplot of `value` against `Species`, facetted by `measurement`
+with free y scales.
+```
+
+```{r plot-long-check}
+check_all(
+    check_uses("facet_wrap"),
+    check_ggplot(
+        geoms = "boxplot",
+        aes = list(x = "Species", y = "value"),
+        facet = "measurement",
+        rows = 600L
+    )
+)
+```
+
+## Step 14: Making a table wider with `pivot_wider()`
+
+`pivot_wider()` is the other direction compared to `pivot_longer()`: it takes one column holding
+names and one column holding values, and spreads them back out into a column each. You can use it
+to "undo" a `pivot_longer()`, or to deal with a dataset that is long when you need it wide.
+
+```
+long_table |>
+    pivot_wider(names_from = measurement, values_from = value)
+```
+
+`names_from` says which column holds the names of the columns to create, and `values_from` says
+which column holds the numbers to fill them with. Every other column is left alone and identifies
+the row: rows that match on all of them are collapsed into one.
+
+That last part is useful. `iris_long` has `flower_id` and `Species` besides `measurement`
+and `value`, so the four rows belonging to flower 1 agree on `flower_id` and `Species` and fold back
+into a single row with four measurement columns: exactly the table we started from in Step 12.
+
+Use `pivot_wider()` on `iris_long` to get `iris_data` back: 150 rows, one per flower, with
+`flower_id`, `Species` and the four measurement columns.
+
+```{r pivot-wider, exercise=TRUE, exercise.lines=8}
+
+```
+
+```{verbatim pivot-wider-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and almost nothing
+about tidyr.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about `pivot_wider()`, about what `names_from` and
+`values_from` do, and about how the leftover columns decide which rows get combined back into
+one, and wait for my answer. Then explain only the part I am missing, in plain language, using a
+small example that is not my exercise. Do not write my answer for me and do not show me finished
+code for it. If I ask you for the answer, ask me what I have tried so far instead.
+
+My exercise is: starting from a long data frame called `iris_long`, with columns `flower_id`,
+`Species`, `measurement` and `value`, use `pivot_wider()` to get back the original wide table of
+150 flowers, with one column per measurement.
+```
+
+```{r pivot-wider-check}
+check_all(
+    check_uses("pivot_wider"),
+    check_rows(150L),
+    check_columns(
+        c(
+            "flower_id", "Species",
+            "Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"
+        ),
+        exactly = TRUE
+    ),
+    check_values("Petal.Length", iris_data$Petal.Length, sorted = TRUE),
+    check_values("Sepal.Width", iris_data$Sepal.Width, sorted = TRUE)
+)
+```
+
+
+## Step 15: All together
+
+Write one pipeline, starting from `iris_data`, that:
+
+1. keeps only the flowers that are **not** of species `versicolor` (`!=` is "is not equal to"),
+2. pivots longer, folding the two length columns - `Sepal.Length` and `Petal.Length` - into
+   `measurement` and `value`,
+3. draws a boxplot of `value` against `Species`, facetted by `measurement`,
+4. and labels the axes: `"Species"` on the x axis and `"Length (cm)"` on the y axis.
+
+Two species and two measurements, so 200 rows go into the plot.
+
+```{r all-together, exercise=TRUE, exercise.lines=16}
+
+```
+
+```{verbatim all-together-hint}
+I am a student on BIOS-IN5410 "Working with R" at the University of Oslo. The learning outcome I
+am working towards is "can handle and visualise rectangular data in R". I am working through a
+self-paced tutorial on data frames, the dplyr functions, pivoting, and ggplot2. Assume I know the
+basics of R programming (variables, vectors, functions, loops, conditions) and a little about
+dplyr, tidyr and ggplot2.
+
+Be my teacher, not my code generator. Before you explain anything, ask me one or two questions to
+work out what I already understand about combining `filter()`, `pivot_longer()` and a facetted
+ggplot into a single pipeline, about `!=`, and about where the pipeline stops using `|>` and
+starts using `+`, and wait for my answer. Then explain only the part I am missing, in plain
+language, using a small example that is not my exercise. Do not write my answer for me and do not
+show me finished code for it. If I ask you for the answer, ask me what I have tried so far
+instead.
+
+My exercise is: write one pipeline from a data frame called `iris_data` that drops the species
+"versicolor", pivots the `Sepal.Length` and `Petal.Length` columns into `measurement` and
+`value`, and draws a boxplot of `value` against `Species` facetted by `measurement`, with the
+axis labels "Species" and "Length (cm)".
+```
+
+```{r all-together-check}
+check_all(
+    check_uses("filter"),
+    check_uses("pivot_longer"),
+    check_uses("facet_wrap"),
+    check_uses("labs"),
+    check_ggplot(
+        geoms = "boxplot",
+        aes = list(x = "Species", y = "value"),
+        facet = "measurement",
+        rows = 200L
+    )
+)
+```
+
+## Capstone
+
+Now you can manually manipulate and visualise rectangular data with the tidyverse. A great deal of
+data handling can be done by piping the commands you have learned in different orders.
+
+### A final exercise: rewrite `petal_plotter.R` with the tidyverse
+
+In the "Writing and running scripts in R" exercise you wrote `R/petal_plotter.R`: a script that takes three command-line
+arguments - two species names and an image size - and writes a PNG of petal length against petal
+width for those two species. It is written entirely in base R (i.e. R without extra packages).
+The subsetting is done by indexing,
+`iris_data[iris_data$Species %in% selected_species, ]`, and the figure is made by opening a graphics
+device with `png()`, drawing into it with `plot()` and `legend()`, and closing it again with
+`dev.off()`.
+
+Your task is to rewrite that script from top to bottom using the tidyverse. Work in the RStudio
+project and git repository you made in the "Reproducible R" exercise, so that the rewrite lands as a
+commit on top of the script you already have, and you can read the difference between the two
+versions in the git diff window.
+
+The script must still do exactly what it did before. It must run unattended from the Terminal, with
+no interactive R, and it must still be called like this:
+
+```
+Rscript R/petal_plotter.R setosa virginica 800
+```
+
+What has to change:
+
+1. **Load the packages yourself.** In this tutorial `dplyr`, `tidyr` and `ggplot2` were loaded for
+   you in every step. A script gets no such favour, so it must begin with its own `library()` calls.
+2. **Keep the command-line arguments.** `commandArgs(trailingOnly = TRUE)`, `args[1]`, `args[2]`,
+   `as.integer(args[3])` and the `paste0()` that builds the output filename can stay exactly as they
+   are. They are not plotting code, and there is no tidyverse replacement you need here.
+3. **Replace the indexing with `filter()`.** One `filter()` call on `iris_data`, keeping the rows
+   whose `Species` is in `selected_species`. `%in%` works inside `filter()` just as it does inside
+   `[`.
+4. **Replace `plot()` and `legend()` with a ggplot.** `ggplot()` with `aes()` mapping `Petal.Width`
+   to x, `Petal.Length` to y and `Species` to `colour`, plus `geom_point()`. The legend you had to
+   build by hand with `legend()` now comes free with the `colour` mapping. Use `labs()` for the axis
+   labels and for a title naming the two species.
+5. **Replace `png()` and `dev.off()` with `ggsave()`.** Assign the plot to a variable and save that
+   variable. See below.
+6. **Test it on the command line, then commit it.** The same command with the same arguments, run
+   from the Terminal and not the R Console, must produce a figure that shows the same thing as
+   before. Only once it does should you commit the rewritten script.
+
+### One new thing: the `ggsave()` function
+
+In base R, saving a figure is three steps: `png()` opens a device, `plot()` draws into it, and
+`dev.off()` closes it and writes the file. Nothing is written until the device is closed, and if the
+script fails in between you get a broken file. In ggplot2 a plot is an object like any other, so
+saving it is one ordinary function call:
+
+```
+species_plot <- # Code that makes a plot ...
+
+ggsave(
+    filename = output_file,
+    plot = species_plot,
+    width = image_size,
+    height = image_size,
+    units = "px",
+    dpi = 150
+)
+```
+
+The `ggsave` arguments you might need:
+
+- `filename` - the path to write to. **The file format is taken from the extension**, so
+  `"iris.png"` gives you a PNG and `"iris.pdf"` gives you a PDF. A relative path is relative to the
+  directory you ran `Rscript` from, exactly as with `png()`. The directory has to exist already.
+- `plot` - the plot object to save. If you leave it out, `ggsave()` saves the last plot that was
+  drawn. Do not rely on that in a script: name your plot in a variable and pass it explicitly, so
+  that what gets saved never depends on what was drawn last (even if that seems obvious here).
+- `width`, `height` and `units` - the size of the figure. `units` is one of `"in"` (the default),
+  `"cm"`, `"mm"` or `"px"`. This can be a trap when rewriting your script: `png(width = 800)` means 800
+  **pixels**, but `ggsave(width = 800)` means 800 **inches**, and ggsave will refuse to make a
+  figure that large. Pass `units = "px"` so the original `image_size` argument keeps its old meaning.
+- `dpi` - dots per inch, 300 by default. For raster formats this is the exchange rate between
+  physical size and pixel size, and it therefore also decides how large the text and the points are
+  relative to the image. The same plot saved at 800 x 800 pixels with `dpi = 72` and with
+  `dpi = 300` differs a lot: the first has big, readable labels, the second has tiny ones. Try a few
+  values and look at the files.
+
+There is no `dev.off()` afterwards. `ggsave()` opens the device, draws the plot and closes the
+device itself, so a leftover `dev.off()` would only give you an error about there being no device to
+close.
+
+### Finishing the exercise
+
+There is no automatic check for this one: the check is that the script runs. Test it from the
+Terminal, with a couple of different settings, exactly the way someone else would have to run it:
+
+```
+Rscript R/petal_plotter.R setosa virginica 800
+Rscript R/petal_plotter.R versicolor virginica 1600
+```
+
+Make sure it works. Open the files it wrote and satisfy yourself that they are the figures you meant to make.
+
+When the script works as intended, commit it. Stage `R/petal_plotter.R` in the git pane, read the diff against
+your base R version
+and write a commit message that says what changed and why. Something like "Rewrite petal_plotter.R
+with dplyr and ggplot2" is better than just "update script". If you have linked your repository to GitHub, you can
+push the commit as well, so that your work is backed up and your rewritten script is where the rest
+of us can see it.
+
+Well done! You're ready for the final part of the R module tomorrow ...
