@@ -70,7 +70,7 @@ cd <another-directory>
 Rscript your_script.R your arguments here
 ```
 
-Then **open the image the clone produced and compare it to the committed one**. Running without an error is not the same as reproducing: a script can run perfectly and draw something different. If something is wrong: figure out what, dix the cause, commit, and clone again.
+Then **open the image the clone produced and compare it to the committed one**. Running without an error is not the same as reproducing: a script can run perfectly and draw something different. If something is wrong: figure out what, fix the cause, commit, and clone again.
 
 When that works, swap repositories with somebody at your table. Give them the URL and nothing else — no explanations, no "you just have to ..." — because everything they need has to be in the repository, and that is exactly what you are testing. Ask them whether it ran without errors, whether their image matches yours, and whether anything in the script's comment was missing, wrong or unclear. Then do the same for them.
 
