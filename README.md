@@ -20,6 +20,8 @@
   - [10.15 - 12.00: Writing and running scripts in R](#1015---1200-writing-and-running-scripts-in-r)
   - [12.00 - 13.15 Lunch break](#1200---1315-lunch-break)
   - [13.15 - 16.00: Handling and visualising rectangular data with R, pt. 1](#1315---1600-handling-and-visualising-rectangular-data-with-r-pt-1)
+- [Friday 2026.11.20](#friday-20261120)
+  - [09.15 - 12.00: Handling and visualising rectangular data with R, pt. 2](#0915---1200-handling-and-visualising-rectangular-data-with-r-pt-2)
 
 ## Preparations before class
 ### 1. Readings
@@ -94,6 +96,9 @@ rmarkdown::run("tutorials/rectangular_data.Rmd")
 ```
 **Note: You need to `git pull` the most recent version of this repository for this tutorial to work.** Also remember to take some breaks.
 
+## Friday 2026.11.20
+### 09.15 - 12.00: Handling and visualising rectangular data with R, pt. 2
+This is the final session of the BIOS-IN5410 R module. We will use the skills we have practised to solve a professionally relevant type of exercise with a small project. See [this exercise](/documents/project.md).
 
 ## Further reading
 - Garrett Grolemund, "Hands-On Programming With R" (https://rstudio-education.github.io/hopr/)
