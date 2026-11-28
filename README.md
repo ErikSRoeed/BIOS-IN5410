@@ -1,6 +1,11 @@
-# BIOS-IN5410: Working with R 
+# BIOS-IN5410: Working With R 
 
-> NB. I'm not going to stop you if you are curious, but the point of this repository is *not* to open, read, and "manually" interact with the files under `assets/`, `documents/`, `scripts/`, or `tutorials/`! Please follow the instructions below to show the student-facing content. The code files here are relatively complicated: they are built to run tutorials and check your answers. You are most certainly not expected to understand them as part of the class. By all means ask how it works if you want to.
+## How to use this repository
+
+ - **Do start from the schedule below.** In each session you will either run an `rmarkdown::run(...)` command in RStudio, or open an exercise page that is linked for you.
+ - **Do not try to read the `tutorials/` files.** `tutorials/*.Rmd` is the source code *behind* the interactive tutorials; `rmarkdown::run(...)` turns it into the tutorial window you are meant to work in.
+ - **Do not edit the files in this repository.** `assets/`, `documents/`, `scripts/`, and `tutorials/` are course machinery. Editing them can break the tutorials and cause conflicts if you `git pull`.
+ - You are not expected to understand the code in this repository as part of the class. If you are curious, you are very welcome to look around afterwards and to ask how it works.
 
 ## Table of contents
 - [Preparations before class](#preparations-before-class)
