@@ -1,6 +1,6 @@
 # BIOS-IN5410: Working with R 
 
-> NB. I'm not going to stop you if you are curious, but the point of this repository is *not* to open, read, and "manually" interact with the files under `assets/`, `documents/`, or `tutorials/`! Please follow the instructions below to show the student-facing content. The code files here are relatively complicated: they are built to run tutorials and check your answers. You are most certainly not expected to understand them as part of the class. By all means ask how it works if you want to.
+> NB. I'm not going to stop you if you are curious, but the point of this repository is *not* to open, read, and "manually" interact with the files under `assets/`, `documents/`, `scripts/`, or `tutorials/`! Please follow the instructions below to show the student-facing content. The code files here are relatively complicated: they are built to run tutorials and check your answers. You are most certainly not expected to understand them as part of the class. By all means ask how it works if you want to.
 
 ## Table of contents
 - [Preparations before class](#preparations-before-class)
@@ -44,12 +44,11 @@ Clone this repository with git:
 ```sh
 git clone https://github.com/ErikSRoeed/BIOS-IN5410
 ```
-To update your local copy of the repository later, use git again:
+If you must update your local copy of the repository later, use git again:
 ```sh
-git fetch --all
 git pull
 ```
-If you don't have git on your local computer, simply download and unzip the repository (the green download button).
+If you don't have git on your machine, you should install it. You will use git on your machine in this module. Installing git is straightforward on MacOS and Linux, but feel free to ask for assistance in class. Instructions for Windows were shared in an earlier module of the course.
 
 #### 2.4 Install the required packages
 Run this from the **R terminal inside RStudio**:
@@ -94,7 +93,6 @@ this tutorial in RStudio:
 ```R
 rmarkdown::run("tutorials/rectangular_data.Rmd")
 ```
-**Note: You need to `git pull` the most recent version of this repository for this tutorial to work.** Also remember to take some breaks.
 
 ## Friday 2026.11.20
 ### 09.15 - 12.00: Handling and visualising rectangular data with R, pt. 2
